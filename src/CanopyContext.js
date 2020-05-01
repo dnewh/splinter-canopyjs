@@ -38,14 +38,10 @@ const fetchConfigSaplings = async saplingURL => {
   return configSaplingsResponse;
 };
 
-export function CanopyProvider({
-  saplingURL,
-  splinterURL,
-  appConfig,
-  children
-}) {
+export function CanopyProvider({ saplingURL, splinterURL, saplingRoutes, appConfig, children }) {
   const [userSaplings, setUserSaplings] = useState([]);
   const [configSaplings, setConfigSaplings] = useState({});
+  const [activeSaplingRoute, setActiveSaplingRoute] = useState(saplingRoutes[0] || null);
 
   const sessionUser = window.sessionStorage.getItem('CANOPY_USER');
   const [user, setUser] = useState(
@@ -66,6 +62,10 @@ export function CanopyProvider({
       appConfig
     };
   };
+
+  window.$CANOPY.getSaplingRoutes = () => {
+    return saplingRoutes;
+  }
 
   window.$CANOPY.hideCanopy = () => {
     const sideNavElement = document.getElementById('root');
@@ -115,10 +115,12 @@ export function CanopyProvider({
     });
   }, [saplingURL]);
 
+  useEffect(() => {
+    setActiveSaplingRoute(window.location.pathname);
+  }, [window.location.pathname]);
+
   return (
-    <CanopyContext.Provider
-      value={{ configSaplings, userSaplings, user, keys }}
-    >
+    <CanopyContext.Provider value={{ configSaplings, userSaplings, activeSaplingRoute, saplingRoutes, user, keys }}>
       {children}
     </CanopyContext.Provider>
   );
@@ -153,4 +155,14 @@ export function useUser() {
 export function useKeys() {
   const context = React.useContext(CanopyContext);
   return context.keys;
+}
+
+export function useActiveSaplingRoute() {
+  const context = useContext(CanopyContext);
+  return context.activeSaplingRoute;
+}
+
+export function useSaplingRoutes() {
+  const context = useContext(CanopyContext);
+  return context.saplingRoutes;
 }
